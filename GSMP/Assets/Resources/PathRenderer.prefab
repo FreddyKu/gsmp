@@ -20,9 +20,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4572352056427140}
   - component: {fileID: 120573327125535856}
+  - component: {fileID: 114383219062269962}
   m_Layer: 0
   m_Name: PathRenderer
-  m_TagString: Untagged
+  m_TagString: PathRenderer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40,6 +41,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114383219062269962
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1268701428551792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08fa8d302c5331840836c8014573a8be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 0
 --- !u!120 &120573327125535856
 LineRenderer:
   m_ObjectHideFlags: 1

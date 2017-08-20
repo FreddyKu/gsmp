@@ -6,6 +6,7 @@ public class ShipGravityControll : MonoBehaviour {
 
     private GameObject bullet;
     public float gravityIntensity = 5;
+    public GameObject brokenShip;
 
 
     public void FindBullet ()
@@ -21,5 +22,11 @@ public class ShipGravityControll : MonoBehaviour {
             bullet.GetComponent<Rigidbody>().AddForce(gravityIntensity * (transform.position - bullet.transform.position).normalized / Mathf.Pow(Vector3.Distance(transform.position, bullet.transform.position), 2));
             yield return null;
         }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Instantiate(brokenShip, transform.position, Quaternion.identity);
+        Destroy(gameObject);
     }
 }

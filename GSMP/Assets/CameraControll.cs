@@ -18,18 +18,28 @@ public class CameraControll : MonoBehaviour {
     private float yTranslate = 0;
     public int movementRange = 70;
 
+    private GameObject GameManager;
+    public GameObject ship;
+    private GameObject shiptracker;
     private GameObject[] Ships;
     private GameObject Bullet;
     public GameObject bulletPrefab;
     public float shootSpeed = 10;
     private GameObject existingBullet;
+    private bool inPlacement = false;
+    private float placementDistance = 10;
 
-	void Update () {
+    private void Start()
+    {
+        GameManager = GameObject.FindGameObjectWithTag("GameController");
+    }
+
+    void Update () {
         oldmouseX = mouseX;
         oldmouseY = mouseY;
         mouseX = (int)Input.mousePosition.x;
         mouseY = (int)Input.mousePosition.y;
-        if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        if (Input.GetAxis("Mouse ScrollWheel") != 0 && !inPlacement)
         {
             distance -= scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
             distance = Mathf.Clamp(distance, 5, 25);
@@ -46,7 +56,10 @@ public class CameraControll : MonoBehaviour {
         }
         if (Input.GetMouseButtonDown(2))
         {
-            Shoot();
+            if (ManagerControlls.gameStarted)
+                Shoot();
+            else
+                StartCoroutine("Place");
         }
 
         
@@ -82,7 +95,7 @@ public class CameraControll : MonoBehaviour {
         }
     }
 
-    void MoveCamera()
+    private void MoveCamera()
     {
         transform.position = new Vector3(0, 5, -distance);
         transform.eulerAngles = new Vector3(0, 0, 0);
@@ -93,7 +106,7 @@ public class CameraControll : MonoBehaviour {
         transform.Translate(sensivity * new Vector3(xTranslate, yTranslate, 0));
     }
 
-    void Shoot()
+    private void Shoot()
     {
         existingBullet = GameObject.FindGameObjectWithTag("Bullet");
         if (existingBullet != null)
@@ -106,5 +119,33 @@ public class CameraControll : MonoBehaviour {
         {
             ship.GetComponent<ShipGravityControll>().FindBullet();
         }
+    }
+
+    IEnumerator Place()
+    {
+        if (inPlacement) yield break;
+        inPlacement = true;
+        while (!Input.GetMouseButtonUp(2))
+        {
+            yield return null;
+        }
+        
+        shiptracker = (GameObject)Instantiate(ship, transform.position + transform.forward * placementDistance, Quaternion.identity);
+
+        while (!Input.GetMouseButtonDown(2))
+        {
+            placementDistance += scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
+            shiptracker.transform.position = transform.position + transform.forward * placementDistance;
+            yield return null;
+        }
+
+        if (Mathf.Abs(shiptracker.transform.position.x)>5 ||Mathf.Abs(shiptracker.transform.position.z)>5 ||shiptracker.transform.position.y<0 || shiptracker.transform.position.y > 10)
+        {
+            Destroy(shiptracker);
+            inPlacement = false;
+            yield break;
+        }
+        GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
+        inPlacement = false;
     }
 }
