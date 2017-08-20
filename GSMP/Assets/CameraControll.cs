@@ -9,12 +9,26 @@ public class CameraControll : MonoBehaviour {
     private int oldmouseX;
     private int oldmouseY;
     public float sensivity;
-	
+
+    private float pitch = 0;
+    private float yaw = 0;
+    private float distance = 16;
+    public float scrollSensitivity = 10;
+    private float xTranslate = 0;
+    private float yTranslate = 0;
+    public int movementRange = 70;
+
 	void Update () {
         oldmouseX = mouseX;
         oldmouseY = mouseY;
         mouseX = (int)Input.mousePosition.x;
         mouseY = (int)Input.mousePosition.y;
+        if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        {
+            distance -= scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
+            distance = Mathf.Clamp(distance, 5, 25);
+            MoveCamera();
+        }
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -32,8 +46,13 @@ public class CameraControll : MonoBehaviour {
     {
         while (Input.GetMouseButton(0) || Input.GetMouseButtonDown(0))
         {
-            transform.Translate(sensivity * new Vector3(oldmouseX-mouseX,oldmouseY-mouseY,0));
-            Debug.Log("Curr "+mouseX+" Last "+oldmouseX);
+            
+            xTranslate += oldmouseX - mouseX;
+            yTranslate += oldmouseY - mouseY;
+            xTranslate = Mathf.Clamp(xTranslate, -movementRange, movementRange);
+            yTranslate = Mathf.Clamp(yTranslate, -movementRange, movementRange);
+
+            MoveCamera();
             yield return null;
 
         }
@@ -43,12 +62,24 @@ public class CameraControll : MonoBehaviour {
     {
         while (Input.GetMouseButton(1) || Input.GetMouseButtonDown(1))
         {
-            //transform.RotateAround(new Vector3(0, 5, 0), Vector3.up, oldmouseX - mouseX);
-            if (transform.eulerAngles.x + oldmouseY-mouseY<90 || transform.eulerAngles.x + oldmouseY - mouseY>270)
-            transform.RotateAround(new Vector3(0, 5, 0), Vector3.left, oldmouseY - mouseY);
-            Debug.Log("Euler " + transform.eulerAngles.x + " move " + (oldmouseY - mouseY));
-            //Debug.Log(transform.rotation.x);
+            pitch += oldmouseY - mouseY;
+            yaw += oldmouseX - mouseX;
+
+            pitch = Mathf.Clamp(pitch, -90, 90);
+
+            MoveCamera();
             yield return null;
         }
+    }
+
+    void MoveCamera()
+    {
+        transform.position = new Vector3(0, 5, -distance);
+        transform.eulerAngles = new Vector3(0, 0, 0);
+
+        transform.RotateAround(new Vector3(0, 5, 0), Vector3.left, -pitch);
+        transform.RotateAround(new Vector3(0, 5, 0), Vector3.up, -yaw);
+
+        transform.Translate(sensivity * new Vector3(xTranslate, yTranslate, 0));
     }
 }
