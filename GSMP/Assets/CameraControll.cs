@@ -18,6 +18,12 @@ public class CameraControll : MonoBehaviour {
     private float yTranslate = 0;
     public int movementRange = 70;
 
+    private GameObject[] Ships;
+    private GameObject Bullet;
+    public GameObject bulletPrefab;
+    public float shootSpeed = 10;
+    private GameObject existingBullet;
+
 	void Update () {
         oldmouseX = mouseX;
         oldmouseY = mouseY;
@@ -37,6 +43,10 @@ public class CameraControll : MonoBehaviour {
         if (Input.GetMouseButtonDown(1))
         {
             StartCoroutine("CameraRotate");
+        }
+        if (Input.GetMouseButtonDown(2))
+        {
+            Shoot();
         }
 
         
@@ -81,5 +91,20 @@ public class CameraControll : MonoBehaviour {
         transform.RotateAround(new Vector3(0, 5, 0), Vector3.up, -yaw);
 
         transform.Translate(sensivity * new Vector3(xTranslate, yTranslate, 0));
+    }
+
+    void Shoot()
+    {
+        existingBullet = GameObject.FindGameObjectWithTag("Bullet");
+        if (existingBullet != null)
+            return;
+        Ships = GameObject.FindGameObjectsWithTag("Ship");
+        Bullet = (GameObject) Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+        Bullet.GetComponent<Rigidbody>().AddForce(transform.forward * shootSpeed, ForceMode.Impulse);
+
+        foreach (GameObject ship in Ships)
+        {
+            ship.GetComponent<ShipGravityControll>().FindBullet();
+        }
     }
 }
