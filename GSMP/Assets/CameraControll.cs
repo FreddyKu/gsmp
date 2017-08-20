@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class CameraControll : MonoBehaviour {
+public class CameraControll : NetworkBehaviour {
 
     private int mouseX = 0;
     private int mouseY = 0;
@@ -32,52 +33,61 @@ public class CameraControll : MonoBehaviour {
     private void Start()
     {
         GameManager = GameObject.FindGameObjectWithTag("GameController");
+        transform.position = new Vector3(0, 5, -16);
+        if (isLocalPlayer)
+        {
+            gameObject.GetComponent<Camera>().enabled = true;
+        }
     }
 
     void Update () {
-        oldmouseX = mouseX;
-        oldmouseY = mouseY;
-        mouseX = (int)Input.mousePosition.x;
-        mouseY = (int)Input.mousePosition.y;
-        if (Input.GetAxis("Mouse ScrollWheel") != 0 && !inPlacement)
+        if (isLocalPlayer)
         {
-            distance -= scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
-            distance = Mathf.Clamp(distance, 5, 25);
-            MoveCamera();
-        }
+            oldmouseX = mouseX;
+            oldmouseY = mouseY;
+            mouseX = (int)Input.mousePosition.x;
+            mouseY = (int)Input.mousePosition.y;
+            if (Input.GetAxis("Mouse ScrollWheel") != 0 && !inPlacement)
+            {
+                distance -= scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
+                distance = Mathf.Clamp(distance, 5, 25);
+                MoveCamera();
+            }
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            StartCoroutine("CameraMove");
-        }
-        if (Input.GetMouseButtonDown(1))
-        {
-            StartCoroutine("CameraRotate");
-        }
-        if (Input.GetMouseButtonDown(2))
-        {
-            if (ManagerControlls.gameStarted)
-                Shoot();
-            else
-                StartCoroutine("Place");
-        }
+            if (Input.GetMouseButtonDown(0))
+            {
+                StartCoroutine("CameraMove");
+            }
+            if (Input.GetMouseButtonDown(1))
+            {
+                StartCoroutine("CameraRotate");
+            }
+            if (Input.GetMouseButtonDown(2))
+            {
+                if (ManagerControlls.gameStarted)
+                    Shoot();
+                else
+                    StartCoroutine("Place");
+            }
 
-        
+        }
 	}
 
     IEnumerator CameraMove()
     {
-        while (Input.GetMouseButton(0) || Input.GetMouseButtonDown(0))
-        {
-            
-            xTranslate += oldmouseX - mouseX;
-            yTranslate += oldmouseY - mouseY;
-            xTranslate = Mathf.Clamp(xTranslate, -movementRange, movementRange);
-            yTranslate = Mathf.Clamp(yTranslate, -movementRange, movementRange);
+        if (isLocalPlayer) {
+            while (Input.GetMouseButton(0) || Input.GetMouseButtonDown(0))
+            {
 
-            MoveCamera();
-            yield return null;
+                xTranslate += oldmouseX - mouseX;
+                yTranslate += oldmouseY - mouseY;
+                xTranslate = Mathf.Clamp(xTranslate, -movementRange, movementRange);
+                yTranslate = Mathf.Clamp(yTranslate, -movementRange, movementRange);
 
+                MoveCamera();
+                yield return null;
+
+            }
         }
     }
 
