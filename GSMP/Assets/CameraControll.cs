@@ -161,7 +161,11 @@ public class CameraControll : NetworkBehaviour {
 
         //GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
 
-        if (isServer) RpcSpawn(shiptracker.transform.position, id);
+        if (isServer)
+        {
+            GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
+            RpcSpawn(shiptracker.transform.position);
+        }
         if (isClient) CmdSpawn(shiptracker.transform.position);
 
         inPlacement = false;
@@ -174,9 +178,8 @@ public class CameraControll : NetworkBehaviour {
     }
 
     [ClientRpc]
-    void RpcSpawn (Vector3 pos, int myid)
+    void RpcSpawn (Vector3 pos)
     {
-        if (id!=myid)
         gameObject.GetComponent<NetworkConnector>().Spawn(pos);
     }
 }

@@ -14,6 +14,12 @@ public class ManagerControlls : NetworkBehaviour {
     public List<Vector3> field;
     public List<Vector3> enemyfield;
     public static bool gameStarted = false;
+    private GameObject textbox;
+
+    private void Start()
+    {
+        textbox = GameObject.FindGameObjectWithTag("ShipCount");
+    }
 
     private void Update()
     {
@@ -41,7 +47,8 @@ public class ManagerControlls : NetworkBehaviour {
         {
             gameStarted = true;
             Unload();
-            Load(enemyfield, true);            
+            Load(enemyfield, true);
+            textbox.GetComponent<GUIManager>().RenderShipsLeft();
         }
     }
 

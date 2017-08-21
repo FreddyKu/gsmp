@@ -7,11 +7,14 @@ public class ShipGravityControll : MonoBehaviour {
     private GameObject bullet;
     public float gravityIntensity = 5;
     public GameObject brokenShip;
-
+    private GameObject textbox;
+    private GameObject gameManager;
 
     public void FindBullet ()
     {
+        gameManager = GameObject.FindGameObjectWithTag("GameController");
         bullet = GameObject.FindGameObjectWithTag("Bullet");
+        textbox = GameObject.FindGameObjectWithTag("ShipCount");
         StartCoroutine("Act");
     }
 
@@ -27,6 +30,8 @@ public class ShipGravityControll : MonoBehaviour {
     private void OnCollisionEnter(Collision collision)
     {
         Instantiate(brokenShip, transform.position, Quaternion.identity);
+        gameManager.GetComponent<ManagerControlls>().enemyfield.Remove(transform.position);
+        textbox.GetComponent<GUIManager>().RenderShipsLeft();
         Destroy(gameObject);
     }
 }
