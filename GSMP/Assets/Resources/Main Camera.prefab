@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 114587725490368268}
   - component: {fileID: 114027661061925950}
   - component: {fileID: 114205469079368684}
+  - component: {fileID: 114987744003705294}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -283,6 +284,18 @@ MonoBehaviour:
   bulletPrefab: {fileID: 1263832436542668, guid: 8d1ad89416f6ae54dbd36ee0458db7f5,
     type: 2}
   shootSpeed: 10
+--- !u!114 &114987744003705294
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1850670937955844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9405ca186c20a924ab0855e6d78bdb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ship: {fileID: 1252156566206938, guid: 8e8b8f9913ab1334795e4f7cf8b0df04, type: 2}
 --- !u!124 &124657529294686590
 Behaviour:
   m_ObjectHideFlags: 1

@@ -30,8 +30,11 @@ public class CameraControll : NetworkBehaviour {
     private bool inPlacement = false;
     private float placementDistance = 10;
 
+    private int id;
+
     private void Start()
     {
+        id = (int) Time.time * 1000;
         GameManager = GameObject.FindGameObjectWithTag("GameController");
         transform.position = new Vector3(0, 5, -16);
         if (isLocalPlayer)
@@ -155,7 +158,25 @@ public class CameraControll : NetworkBehaviour {
             inPlacement = false;
             yield break;
         }
-        GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
+
+        //GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
+
+        if (isServer) RpcSpawn(shiptracker.transform.position, id);
+        if (isClient) CmdSpawn(shiptracker.transform.position);
+
         inPlacement = false;
+    }
+
+    [Command] 
+    void CmdSpawn (Vector3 pos)
+    {
+        gameObject.GetComponent<NetworkConnector>().Spawn(pos);
+    }
+
+    [ClientRpc]
+    void RpcSpawn (Vector3 pos, int myid)
+    {
+        if (id!=myid)
+        gameObject.GetComponent<NetworkConnector>().Spawn(pos);
     }
 }

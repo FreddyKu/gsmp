@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class ManagerControlls : MonoBehaviour {
+public class ManagerControlls : NetworkBehaviour {
 
     public GameObject ship;
     private GameObject currentShip;
@@ -11,20 +12,14 @@ public class ManagerControlls : MonoBehaviour {
     private int iddeletion = 1;
     private float x, y, z;
     public List<Vector3> field;
+    public List<Vector3> enemyfield;
     public static bool gameStarted = false;
-
-    private void Start()
-    {
-        Spawn();
-        Spawn();
-        Spawn();
-    }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
-            Spawn();
+            //Spawn();
         }
 
         if (Input.GetKeyDown(KeyCode.T))
@@ -42,21 +37,11 @@ public class ManagerControlls : MonoBehaviour {
             Unload();
         }
 
-        if (Input.GetKeyDown(KeyCode.U))
-        {
-            Load(field, true);
-        }
-
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            gameStarted = true;
-        }
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
             gameStarted = true;
             Unload();
-            Load(field, true);
+            Load(enemyfield, true);            
         }
     }
 
@@ -67,6 +52,7 @@ public class ManagerControlls : MonoBehaviour {
         z = Random.Range(-5, 5);
 
         field.Add(new Vector3(x, y, z));
+
         Instantiate(ship, new Vector3(x, y, z), Quaternion.identity);
     }
 
