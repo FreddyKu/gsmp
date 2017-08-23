@@ -12,7 +12,7 @@ public class GUIManager : MonoBehaviour {
         GameManager = GameObject.FindGameObjectWithTag("GameController");
 	}
 	
-	 public void RenderShipsLeft () {
+	public void RenderShipsLeft () {
         gameObject.GetComponent<Text>().text = GameManager.GetComponent<ManagerControlls>().enemyfield.Count +"";
 	}
 }

@@ -15,6 +15,7 @@ public class ManagerControlls : NetworkBehaviour {
     public List<Vector3> enemyfield;
     public static bool gameStarted = false;
     private GameObject textbox;
+    public int readyplayers = 0;
 
     private void Start()
     {
@@ -42,14 +43,15 @@ public class ManagerControlls : NetworkBehaviour {
         {
             Unload();
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            gameStarted = true;
-            Unload();
-            Load(enemyfield, true);
-            textbox.GetComponent<GUIManager>().RenderShipsLeft();
-        }
+
+    public void Load()
+    {
+        gameStarted = true;
+        Unload();
+        Load(enemyfield, true);
+        textbox.GetComponent<GUIManager>().RenderShipsLeft();
     }
 
     private void Spawn()
@@ -94,4 +96,6 @@ public class ManagerControlls : NetworkBehaviour {
             }
         }
     }
+
+
 }

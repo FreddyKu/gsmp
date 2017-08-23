@@ -30,11 +30,12 @@ public class CameraControll : NetworkBehaviour {
     private bool inPlacement = false;
     private float placementDistance = 10;
 
-    private int id;
+    private int readyPlayers;
+    private bool isReady = false;
 
     private void Start()
     {
-        id = (int) Time.time * 1000;
+        readyPlayers = 0;
         GameManager = GameObject.FindGameObjectWithTag("GameController");
         transform.position = new Vector3(0, 5, -16);
         if (isLocalPlayer)
@@ -72,9 +73,42 @@ public class CameraControll : NetworkBehaviour {
                 else
                     StartCoroutine("Place");
             }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (!isReady)
+                {
+                    Debug.Log("is Ready");
+                    //Debug.Log(readyPlayers);
+                    CmdReady();
+                    isReady = true;
 
+                }
+            }
         }
 	}
+
+    [Command]
+    void CmdReady()
+    {
+        RpcStart();
+    }
+
+    [ClientRpc]
+    public void RpcStart()
+    {
+        ReadyPlayer(); 
+    }
+
+    private void ReadyPlayer()
+    {
+        GameManager.GetComponent<ManagerControlls>().readyplayers++;
+        Debug.Log(GameManager.GetComponent<ManagerControlls>().readyplayers);
+        if (GameManager.GetComponent<ManagerControlls>().readyplayers > 1)
+        {
+            GameManager.GetComponent<ManagerControlls>().Load();
+            Debug.Log("Done");
+        }
+    }
 
     IEnumerator CameraMove()
     {
