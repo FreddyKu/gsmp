@@ -263,6 +263,8 @@ MonoBehaviour:
   bulletPrefab: {fileID: 1018561551022810, guid: 8d1ad89416f6ae54dbd36ee0458db7f5,
     type: 2}
   shootSpeed: 10
+  placeShipMax: 3
+  playercount: 0
 --- !u!114 &114987744003705294
 MonoBehaviour:
   m_ObjectHideFlags: 1

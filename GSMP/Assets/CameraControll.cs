@@ -6,11 +6,10 @@ using UnityEngine.Networking;
 public class CameraControll : NetworkBehaviour {
 
     /*
-     *  Code contains Camera Movement, Ready Function, Ship Placement and Shooting functions.
-     *  
+     * Code contains Camera Movement, Ready Function, Ship Placement and Shooting functions.
      */
 
-#region Variables
+    #region Variables
     private int mouseX = 0;
     private int mouseY = 0;
     private int oldmouseX;
@@ -36,22 +35,24 @@ public class CameraControll : NetworkBehaviour {
     private GameObject existingBullet;
     private bool inPlacement = false;
     private float placementDistance = 10;
+    private int placedShips = 0;
+    public int placeShipMax;
 
-    private int readyPlayers;
+    //private int readyPlayers;
     private bool isReady = false;
     private float readyDelayTime = 4.5f;
     private NetworkSending sender;
 
     [SyncVar]
     public int playercount;
-#endregion
+    #endregion
 
     private void Start()
     {
         CmdCheckPlayers();
         InfoText = GameObject.FindGameObjectWithTag("InfoText");
         sender = gameObject.GetComponent<NetworkSending>();
-        readyPlayers = 0;
+        //readyPlayers = 0;
         GameManager = GameObject.FindGameObjectWithTag("GameController");
         transform.position = new Vector3(0, 5, -16);
         if (isLocalPlayer)
@@ -60,11 +61,12 @@ public class CameraControll : NetworkBehaviour {
         }
         if (playercount == 2)
         {
-            sender.Send("All players connected", 1.5f, 2);
+            sender.ChainStart("All players connected","Placement-Phase beginns","Use [Middle Click] to place your ships",2.5f,2);
         }
     }
 
-    void Update () {
+    void Update () //Detects Mouse Input, starts needed Methods and manages "Ready"-state
+    {
         if (isLocalPlayer)
         {
             oldmouseX = mouseX; 
@@ -74,7 +76,7 @@ public class CameraControll : NetworkBehaviour {
             if (Input.GetAxis("Mouse ScrollWheel") != 0 && !inPlacement) //Only change distance if not in placement
             {
                 distance -= scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
-                distance = Mathf.Clamp(distance, 5, 25);
+                distance = Mathf.Clamp(distance, 7, 25);
                 MoveCamera();
             }
 
@@ -93,15 +95,19 @@ public class CameraControll : NetworkBehaviour {
                 else
                     StartCoroutine("Place"); //If game hasn't started start placement
             }
-            if (Input.GetKeyDown(KeyCode.Space)) //Ready Player
+            if (Input.GetKeyDown(KeyCode.Space) && placedShips>=placeShipMax) //Ready Player
             {
                 if (!isReady) 
                 {
                     sender.Send("You are ready", 1.5f, 0);
-                    sender.Send("Enemy if ready", 1.5f, 1);
+                    sender.Send("Enemy is ready", 1.5f, 1);
                     StartCoroutine(ReadyDelay());
                     isReady = true;
                 }
+            }
+            if (Input.GetKeyDown(KeyCode.Space) && placedShips < placeShipMax) //Ready Player
+            {
+                sender.Send("You have not finished placing your ships", 2f, 0);
             }
         }
 	}
@@ -121,7 +127,7 @@ public class CameraControll : NetworkBehaviour {
         }
     }
 
-#region ReadyPlayer Methods
+    #region ReadyPlayer Methods
     IEnumerator ReadyDelay() //Wait before Starting game
     {
         yield return new WaitForSeconds(readyDelayTime);
@@ -145,13 +151,13 @@ public class CameraControll : NetworkBehaviour {
         GameManager.GetComponent<ManagerControlls>().readyplayers++;
         if (GameManager.GetComponent<ManagerControlls>().readyplayers > 1)
         {
-            GameManager.GetComponent<ManagerControlls>().Load();
+            GameManager.GetComponent<ManagerControlls>().LoadField();
             sender.Send("Game starts", 2.5f, 0);
         }
     }
-#endregion
+    #endregion
 
-#region CameraMovement Methods
+    #region CameraMovement Methods
     IEnumerator CameraMove() //Sets yTranslate and xTranslate
     {
         if (isLocalPlayer) {
@@ -193,18 +199,26 @@ public class CameraControll : NetworkBehaviour {
 
         transform.Translate(sensivity * new Vector3(xTranslate, yTranslate, 0));
     }
-#endregion  
+    #endregion  
 
-#region Placement Methods
+    #region Placement Methods
     IEnumerator Place() //Ship Placement Method
     {
         if (inPlacement) yield break; //If already in placement, quit
+
+        if (placedShips >= placeShipMax) //If reached ship maximum
+        {
+            sender.Send("Maximum ship amount reached", 2.5f, 0);
+            yield break;
+        }
+
         CmdCheckPlayers();
         if (playercount == 1) //If no one connected, quit
             {
                 sender.Send("Waiting for players", 0.5f, 0);
                 yield break;
             }
+
         inPlacement = true;
         while (!Input.GetMouseButtonUp(2)) //Wait for button release
         {
@@ -233,8 +247,13 @@ public class CameraControll : NetworkBehaviour {
             RpcSpawn(shiptracker.transform.position); //Spawn future Ship everywhere excluding oneself because of List
         }
         if (isClient) CmdSpawn(shiptracker.transform.position); //Spawn future Ship on server
-
+        placedShips++;
         inPlacement = false;
+
+        if (placedShips == placeShipMax)
+        {
+            sender.ChainStart("You finished placing your ships", "Press [Space] when ready", 2f, 0);
+        }
     }
 
     [Command] 
@@ -250,13 +269,10 @@ public class CameraControll : NetworkBehaviour {
     }
 
     [Command]
-    void CmdCheckPlayers()
+    void CmdCheckPlayers() //Set "playercount" to current connection count
     {
         playercount = NetworkServer.connections.Count;
-        Debug.Log("Server"+NetworkServer.connections.Count+ " /// "+playercount);
-    }
-
-    
-#endregion
+    }  
+    #endregion
 
 }

@@ -5,10 +5,12 @@ using UnityEngine.Networking;
 
 public class NetworkSending : NetworkBehaviour {
 
+    #region Variables
     private InfoTextAlpha infoText;
     private List<string> queue = new List<string>();
+    #endregion
 
-    public void Start()
+    public void Start() //Instantiates
     {
         infoText = GameObject.FindGameObjectWithTag("InfoText").GetComponent<InfoTextAlpha>();
     }
@@ -27,44 +29,71 @@ public class NetworkSending : NetworkBehaviour {
         {
             Send("L is pressed at all pcs", 3, 2);
         }
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            StartCoroutine(Chain("Test1", "Test2", "Test3", 2f, 0));
+        }
     }*/
 
-    public void Send(string s, float duration, int target)
+    public void Send(string message, float duration, int target) //Sends message for duration to target (0 = self; 1 = enemy; 2 = all)
     {
         if (target == 0)
         {
-            infoText.Render(s, duration);
+            infoText.Render(message, duration);
         } else if (target == 1)
         {
-            queue.Add(s);
-            CmdSend(s, duration);
+            queue.Add(message);
+            CmdSend(message, duration);
         } else if (target == 2)
         {
-            CmdSend(s, duration);
+            CmdSend(message, duration);
         }
 
     }
+    public void ChainStart(string message1, string message2, float duration, int target)
+    {
+        StartCoroutine(Chain(message1, message2, duration, target));
+    }
+    private IEnumerator Chain(string message1, string message2, float duration, int target)
+    {
+        Send(message1, duration, target);
+        yield return new WaitForSeconds(duration+1f);
+        Send(message2, duration, target);
+    }
+
+    public void ChainStart(string message1, string message2, string message3, float duration, int target)
+    {
+        StartCoroutine(Chain(message1, message2, message3, duration, target));
+    }
+    private IEnumerator Chain(string message1, string message2, string message3, float duration, int target)
+    {
+        Send(message1, duration, target);
+        yield return new WaitForSeconds(duration+1f);
+        Send(message2, duration, target);
+        yield return new WaitForSeconds(duration+1f);
+        Send(message3, duration, target);
+    }
 
     [Command]
-    public void CmdSend(string s, float d)
+    public void CmdSend(string message, float duration) 
     {
-        RpcSend(s,d);
+        RpcSend(message, duration);
     }
 
     [ClientRpc]
-    public void RpcSend(string s, float d)
+    public void RpcSend(string message, float duration) 
     {
-        Receive(s,d);
+        Receive(message, duration);
     }
 
-    public void Receive(string s, float d)
+    public void Receive(string message, float duration) //Receives Message and sends it to self
     {
-        if (queue.Contains(s))
+        if (queue.Contains(message))
         {
-            queue.Remove(s);
+            queue.Remove(message);
         } else
         {
-            Send(s, d, 0);
+            Send(message, duration, 0);
         }
     }
 }

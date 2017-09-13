@@ -5,6 +5,7 @@ using UnityEngine.Networking;
 
 public class ManagerControlls : NetworkBehaviour {
 
+    #region Variables
     public GameObject ship;
     private GameObject currentShip;
     private GameObject[] PathList;
@@ -16,19 +17,15 @@ public class ManagerControlls : NetworkBehaviour {
     public static bool gameStarted = false;
     private GameObject textbox;
     public int readyplayers = 0;
+    #endregion
 
-    private void Start()
+    private void Start() //Instantiates
     {
         textbox = GameObject.FindGameObjectWithTag("ShipCount");
     }
 
-    private void Update()
+    private void Update() //Checks for Buttonpresses
     {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            //Spawn();
-        }
-
         if (Input.GetKeyDown(KeyCode.T))
         {
             Remove();
@@ -38,39 +35,17 @@ public class ManagerControlls : NetworkBehaviour {
         {
             Application.Quit();
         }
-
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            Unload();
-        }
-
-        if (Input.GetKey(KeyCode.A)&&Input.GetKey(KeyCode.U)&&Input.GetKey(KeyCode.P))
-        {
-            Load();
-        }
     }
 
-
-    public void Load()
+    public void LoadField() //Loads enemyfield while unloading current field
     {
         gameStarted = true;
         Unload();
-        Load(enemyfield, true);
+        Load(enemyfield, true);                                                  //!!!!!!!!!!!!!!!!!!! TWO LOAD METHODS !!!!!!!!!!!!!!!!!!!!!! (Fixed but Bugs could appear)
         textbox.GetComponent<GUIManager>().RenderShipsLeft();
     }
 
-    private void Spawn()
-    {
-        x = Random.Range(-5, 5);
-        y = Random.Range(0, 10);
-        z = Random.Range(-5, 5);
-
-        field.Add(new Vector3(x, y, z));
-
-        Instantiate(ship, new Vector3(x, y, z), Quaternion.identity);
-    }
-
-    private void Unload()
+    private void Unload() //Unloads current field
     {
         Ships = GameObject.FindGameObjectsWithTag("Ship");
         foreach (GameObject ship in Ships)
@@ -79,7 +54,7 @@ public class ManagerControlls : NetworkBehaviour {
         }
     }
 
-    private void Load(List<Vector3> shiplist, bool invisible)
+    private void Load(List<Vector3> shiplist, bool invisible) //Instantiates a ship for each ship in given list
     {
         foreach (Vector3 pos in shiplist)
         {
@@ -88,7 +63,7 @@ public class ManagerControlls : NetworkBehaviour {
         }
     }
 
-    private void Remove()
+    private void Remove() //Removes oldest line
     {
         PathList = GameObject.FindGameObjectsWithTag("PathRenderer");
         foreach (GameObject path in PathList)
