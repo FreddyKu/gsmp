@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 114027661061925950}
   - component: {fileID: 114205469079368684}
   - component: {fileID: 114987744003705294}
+  - component: {fileID: 114371492670833280}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -88,7 +89,7 @@ Camera:
   m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.23842993, g: 0.32156068, b: 0.7205882, a: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -233,6 +234,17 @@ MonoBehaviour:
   m_SnapThreshold: 5
   m_InterpolateRotation: 1
   m_InterpolateMovement: 1
+--- !u!114 &114371492670833280
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1850670937955844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92e2a96f2486d634a93462f4a77049cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114587725490368268
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -248,7 +260,7 @@ MonoBehaviour:
   scrollSensitivity: 10
   movementRange: 140
   ship: {fileID: 1252156566206938, guid: 8e8b8f9913ab1334795e4f7cf8b0df04, type: 2}
-  bulletPrefab: {fileID: 1263832436542668, guid: 8d1ad89416f6ae54dbd36ee0458db7f5,
+  bulletPrefab: {fileID: 1018561551022810, guid: 8d1ad89416f6ae54dbd36ee0458db7f5,
     type: 2}
   shootSpeed: 10
 --- !u!114 &114987744003705294
@@ -263,6 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ship: {fileID: 1252156566206938, guid: 8e8b8f9913ab1334795e4f7cf8b0df04, type: 2}
+  readyplayers: 0
 --- !u!124 &124657529294686590
 Behaviour:
   m_ObjectHideFlags: 1

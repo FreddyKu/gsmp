@@ -5,6 +5,12 @@ using UnityEngine.Networking;
 
 public class CameraControll : NetworkBehaviour {
 
+    /*
+     *  Code contains Camera Movement, Ready Function, Ship Placement and Shooting functions.
+     *  
+     */
+
+#region Variables
     private int mouseX = 0;
     private int mouseY = 0;
     private int oldmouseX;
@@ -20,6 +26,7 @@ public class CameraControll : NetworkBehaviour {
     public int movementRange = 70;
 
     private GameObject GameManager;
+    private GameObject InfoText;
     public GameObject ship;
     private GameObject shiptracker;
     private GameObject[] Ships;
@@ -32,9 +39,18 @@ public class CameraControll : NetworkBehaviour {
 
     private int readyPlayers;
     private bool isReady = false;
+    private float readyDelayTime = 4.5f;
+    private NetworkSending sender;
+
+    [SyncVar]
+    public int playercount;
+#endregion
 
     private void Start()
     {
+        CmdCheckPlayers();
+        InfoText = GameObject.FindGameObjectWithTag("InfoText");
+        sender = gameObject.GetComponent<NetworkSending>();
         readyPlayers = 0;
         GameManager = GameObject.FindGameObjectWithTag("GameController");
         transform.position = new Vector3(0, 5, -16);
@@ -42,75 +58,101 @@ public class CameraControll : NetworkBehaviour {
         {
             gameObject.GetComponent<Camera>().enabled = true;
         }
+        if (playercount == 2)
+        {
+            sender.Send("All players connected", 1.5f, 2);
+        }
     }
 
     void Update () {
         if (isLocalPlayer)
         {
-            oldmouseX = mouseX;
-            oldmouseY = mouseY;
+            oldmouseX = mouseX; 
+            oldmouseY = mouseY; //Detect change in Mouse coordinates
             mouseX = (int)Input.mousePosition.x;
             mouseY = (int)Input.mousePosition.y;
-            if (Input.GetAxis("Mouse ScrollWheel") != 0 && !inPlacement)
+            if (Input.GetAxis("Mouse ScrollWheel") != 0 && !inPlacement) //Only change distance if not in placement
             {
                 distance -= scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
                 distance = Mathf.Clamp(distance, 5, 25);
                 MoveCamera();
             }
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0)) //Detect Input "Left Mouseclick"
             {
                 StartCoroutine("CameraMove");
             }
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(1)) //Detect Input "Right Mouseclick"
             {
                 StartCoroutine("CameraRotate");
             }
-            if (Input.GetMouseButtonDown(2))
+            if (Input.GetMouseButtonDown(2)) //Detect Input "Middle Mouseclick"
             {
-                if (ManagerControlls.gameStarted)
+                if (ManagerControlls.gameStarted) //If game has started shoot
                     Shoot();
                 else
-                    StartCoroutine("Place");
+                    StartCoroutine("Place"); //If game hasn't started start placement
             }
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Space)) //Ready Player
             {
-                if (!isReady)
+                if (!isReady) 
                 {
-                    Debug.Log("is Ready");
-                    //Debug.Log(readyPlayers);
-                    CmdReady();
+                    sender.Send("You are ready", 1.5f, 0);
+                    sender.Send("Enemy if ready", 1.5f, 1);
+                    StartCoroutine(ReadyDelay());
                     isReady = true;
-
                 }
             }
         }
 	}
 
+    private void Shoot() //Bullet Spawn and Gravity-instantiate
+    {
+        existingBullet = GameObject.FindGameObjectWithTag("Bullet");
+        if (existingBullet != null) //Only shoot if there is no bullet
+            return;
+        Ships = GameObject.FindGameObjectsWithTag("Ship"); //Find all Ships before shooting
+        Bullet = (GameObject)Instantiate(bulletPrefab, transform.position, Quaternion.identity); //Spawn Bullet
+        Bullet.GetComponent<Rigidbody>().AddForce(transform.forward * shootSpeed, ForceMode.Impulse); //Propell Bullet
+
+        foreach (GameObject ship in Ships) //Start gravitytional effect on all ships
+        {
+            ship.GetComponent<ShipGravityControll>().FindBullet();
+        }
+    }
+
+#region ReadyPlayer Methods
+    IEnumerator ReadyDelay() //Wait before Starting game
+    {
+        yield return new WaitForSeconds(readyDelayTime);
+        CmdReady();
+    }
+
     [Command]
-    void CmdReady()
+    void CmdReady() //Order Server to start "ReadyPlayer()" on each client
     {
         RpcStart();
     }
 
     [ClientRpc]
-    public void RpcStart()
+    public void RpcStart() //Call "ReadyPlayer()" on each client
     {
         ReadyPlayer(); 
-    }
+    } 
 
-    private void ReadyPlayer()
+    private void ReadyPlayer() //Ready Player method and Status Renderer
     {
         GameManager.GetComponent<ManagerControlls>().readyplayers++;
-        Debug.Log(GameManager.GetComponent<ManagerControlls>().readyplayers);
         if (GameManager.GetComponent<ManagerControlls>().readyplayers > 1)
         {
             GameManager.GetComponent<ManagerControlls>().Load();
-            Debug.Log("Done");
+            sender.Send("Game starts", 2.5f, 0);
         }
     }
+#endregion
 
-    IEnumerator CameraMove()
+#region CameraMovement Methods
+    IEnumerator CameraMove() //Sets yTranslate and xTranslate
     {
         if (isLocalPlayer) {
             while (Input.GetMouseButton(0) || Input.GetMouseButtonDown(0))
@@ -123,12 +165,11 @@ public class CameraControll : NetworkBehaviour {
 
                 MoveCamera();
                 yield return null;
-
             }
         }
     }
 
-    IEnumerator CameraRotate()
+    IEnumerator CameraRotate() //Sets yaw and pitch
     {
         while (Input.GetMouseButton(1) || Input.GetMouseButtonDown(1))
         {
@@ -142,7 +183,7 @@ public class CameraControll : NetworkBehaviour {
         }
     }
 
-    private void MoveCamera()
+    private void MoveCamera() //Renders Movement
     {
         transform.position = new Vector3(0, 5, -distance);
         transform.eulerAngles = new Vector3(0, 0, 0);
@@ -152,34 +193,27 @@ public class CameraControll : NetworkBehaviour {
 
         transform.Translate(sensivity * new Vector3(xTranslate, yTranslate, 0));
     }
+#endregion  
 
-    private void Shoot()
+#region Placement Methods
+    IEnumerator Place() //Ship Placement Method
     {
-        existingBullet = GameObject.FindGameObjectWithTag("Bullet");
-        if (existingBullet != null)
-            return;
-        Ships = GameObject.FindGameObjectsWithTag("Ship");
-        Bullet = (GameObject) Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        Bullet.GetComponent<Rigidbody>().AddForce(transform.forward * shootSpeed, ForceMode.Impulse);
-
-        foreach (GameObject ship in Ships)
-        {
-            ship.GetComponent<ShipGravityControll>().FindBullet();
-        }
-    }
-
-    IEnumerator Place()
-    {
-        if (inPlacement) yield break;
+        if (inPlacement) yield break; //If already in placement, quit
+        CmdCheckPlayers();
+        if (playercount == 1) //If no one connected, quit
+            {
+                sender.Send("Waiting for players", 0.5f, 0);
+                yield break;
+            }
         inPlacement = true;
-        while (!Input.GetMouseButtonUp(2))
+        while (!Input.GetMouseButtonUp(2)) //Wait for button release
         {
             yield return null;
         }
         
-        shiptracker = (GameObject)Instantiate(ship, transform.position + transform.forward * placementDistance, Quaternion.identity);
+        shiptracker = (GameObject)Instantiate(ship, transform.position + transform.forward * placementDistance, Quaternion.identity); //Instantiate Dummy Ship
 
-        while (!Input.GetMouseButtonDown(2))
+        while (!Input.GetMouseButtonDown(2)) //Until button is pressed again render ship at cursor
         {
             placementDistance += scrollSensitivity * Input.GetAxis("Mouse ScrollWheel");
             shiptracker.transform.position = transform.position + transform.forward * placementDistance;
@@ -191,29 +225,38 @@ public class CameraControll : NetworkBehaviour {
             Destroy(shiptracker);
             inPlacement = false;
             yield break;
-        }
-
-        //GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
+        } //If faulty placement, break
 
         if (isServer)
         {
-            GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position);
-            RpcSpawn(shiptracker.transform.position);
+            GameManager.GetComponent<ManagerControlls>().field.Add(shiptracker.transform.position); //Add ship to own ship list
+            RpcSpawn(shiptracker.transform.position); //Spawn future Ship everywhere excluding oneself because of List
         }
-        if (isClient) CmdSpawn(shiptracker.transform.position);
+        if (isClient) CmdSpawn(shiptracker.transform.position); //Spawn future Ship on server
 
         inPlacement = false;
     }
 
     [Command] 
-    void CmdSpawn (Vector3 pos)
+    void CmdSpawn (Vector3 pos) //Spawn Ship on Server
     {
         gameObject.GetComponent<NetworkConnector>().Spawn(pos);
     }
 
     [ClientRpc]
-    void RpcSpawn (Vector3 pos)
+    void RpcSpawn (Vector3 pos) //Spawn Ship everywhere
     {
         gameObject.GetComponent<NetworkConnector>().Spawn(pos);
     }
+
+    [Command]
+    void CmdCheckPlayers()
+    {
+        playercount = NetworkServer.connections.Count;
+        Debug.Log("Server"+NetworkServer.connections.Count+ " /// "+playercount);
+    }
+
+    
+#endregion
+
 }

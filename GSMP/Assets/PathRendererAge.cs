@@ -10,5 +10,4 @@ public class PathRendererAge : MonoBehaviour {
         id = GameObject.FindGameObjectsWithTag("PathRenderer").Length;
         Debug.Log("PathRendererAge: " + id);
 	}
-	
 }

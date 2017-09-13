@@ -43,6 +43,11 @@ public class ManagerControlls : NetworkBehaviour {
         {
             Unload();
         }
+
+        if (Input.GetKey(KeyCode.A)&&Input.GetKey(KeyCode.U)&&Input.GetKey(KeyCode.P))
+        {
+            Load();
+        }
     }
 
 

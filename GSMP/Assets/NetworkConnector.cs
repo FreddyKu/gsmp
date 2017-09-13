@@ -15,8 +15,6 @@ public class NetworkConnector : MonoBehaviour {
 
     public void Spawn(Vector3 pos)
     {
-        //shiptracker = Instantiate(ship, pos, Quaternion.identity);
-        //shiptracker.GetComponent<MeshRenderer>().enabled = false;
         if (!GameManager.GetComponent<ManagerControlls>().field.Contains(pos))
         GameManager.GetComponent<ManagerControlls>().enemyfield.Add(pos);
     }
